@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatZone - WhatsApp & Instagram Hybrid</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background-color: #334155;
+            border-radius: 3px;
+        }
+        .bg-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden bg-slate-900">
+
+    <!-- LOGIN / REGISTER MODAL -->
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-2xl mb-3 shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid font-bold text-2xl text-white">CZ</i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Selamat Datang di <span class="text-indigo-400">ChatZone</span></h2>
+                <p class="text-xs text-slate-400 mt-1">Platform Komunikasi Hybrid DM & Social Story</p>
+            </div>
+
+            <!-- Error Alert -->
+            <div id="authError" class="hidden mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-xs text-center"></div>
+
+            <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Email</label>
+                    <input type="email" id="authEmail" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition" placeholder="nama@email.com">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Kata Sandi</label>
+                    <input type="password" id="authPassword" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition" placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/30">
+                    Masuk / Daftar
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-slate-700/60 text-xs text-slate-400 text-center">
+                <p class="mb-2"><strong>Akses Owner Terintegrasi:</strong></p>
+                <p class="font-mono text-indigo-300">marsellinus1703@gmail.com</p>
+                <p class="font-mono text-slate-400 text-[10px]">Pass: Marsel2010</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR NAV -->
+    <aside class="w-full md:w-20 bg-slate-950 border-r border-slate-800 flex md:flex-col justify-between items-center p-4 z-20">
+        <div class="flex md:flex-col items-center gap-6">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
+                CZ
+            </div>
+            <nav class="flex md:flex-col gap-4">
+                <button onclick="switchTab('global')" class="p-3 text-slate-400 hover:text-indigo-400 hover:bg-slate-900 rounded-xl transition relative group" title="Global Chat">
+                    <i class="fa-solid fa-earth-americas text-xl"></i>
+                </button>
+                <button onclick="switchTab('dm')" class="p-3 text-slate-400 hover:text-indigo-400 hover:bg-slate-900 rounded-xl transition relative group" title="Pesan DM">
+                    <i class="fa-solid fa-paper-plane text-xl"></i>
+                </button>
+                <button onclick="switchTab('stories')" class="p-3 text-slate-400 hover:text-indigo-400 hover:bg-slate-900 rounded-xl transition relative group" title="Stories">
+                    <i class="fa-solid fa-circle-notch text-xl"></i>
+                </button>
+                <button id="ownerNavBtn" onclick="switchTab('owner')" class="hidden p-3 text-amber-400 hover:bg-slate-900 rounded-xl transition relative group" title="Owner Dashboard">
+                    <i class="fa-solid fa-crown text-xl"></i>
+                </button>
+            </nav>
+        </div>
+        
+        <div class="flex md:flex-col items-center gap-4">
+            <button onclick="logout()" class="p-3 text-slate-400 hover:text-red-400 hover:bg-slate-900 rounded-xl transition" title="Keluar">
+                <i class="fa-solid fa-right-from-bracket text-xl"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN MAIN CONTENT -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        <!-- TOP HEADER -->
+        <header class="h-16 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md flex items-center justify-between px-6 z-10">
+            <div class="flex items-center gap-3">
+                <h1 id="viewTitle" class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-earth-americas text-indigo-400"></i> Global Chat
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="currentUserBadge" class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span id="userBadgeName" class="text-xs text-slate-200 font-medium">Pengguna</span>
+                    <span id="verifiedBadge" class="hidden text-blue-400"><i class="fa-solid fa-circle-check"></i></span>
+                    <span id="ownerTag" class="hidden text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-500/40">OWNER</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- VIEW 1: GLOBAL CHAT -->
+        <section id="globalChatView" class="flex-1 flex flex-col h-[calc(100vh-4rem)]">
+            <div id="globalChatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+                <div class="text-center text-xs text-slate-500 my-4">Selamat datang di Global Chat ChatZone! Mulai obrolan dengan seluruh anggota.</div>
+            </div>
+            <form onsubmit="sendGlobalMessage(event)" class="p-4 bg-slate-950 border-t border-slate-800 flex gap-2">
+                <input type="text" id="globalInput" placeholder="Ketik pesan global..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl font-medium transition">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- VIEW 2: STORIES -->
+        <section id="storiesView" class="hidden flex-1 overflow-y-auto p-6 scrollbar-thin">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Stories / Status</h2>
+                        <p class="text-xs text-slate-400">Bagikan momen Anda yang hilang dalam 24 jam</p>
+                    </div>
+                    <button onclick="createStoryPrompt()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Buat Story
+                    </button>
+                </div>
+                <div id="storiesGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Dynamic Stories -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: OWNER DASHBOARD -->
+        <section id="ownerDashboardView" class="hidden flex-1 overflow-y-auto p-6 scrollbar-thin">
+            <div class="max-w-5xl mx-auto space-y-6">
+                <div class="bg-slate-800 border border-amber-500/30 rounded-2xl p-6 relative overflow-hidden">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                                Dashboard Owner / Super Admin
+                                <i class="fa-solid fa-circle-check text-blue-400"></i>
+                            </h2>
+                            <p class="text-xs text-slate-400">Pemilik: Marselinus Patrixon (marsellinus1703@gmail.com)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400">Total Pengguna</div>
+                        <div class="text-2xl font-bold text-white mt-1">1,248</div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400">Pengguna Online</div>
+                        <div class="text-2xl font-bold text-emerald-400 mt-1">312</div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400">Total Pesan Global</div>
+                        <div class="text-2xl font-bold text-indigo-400 mt-1">18,520</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentUser = null;
+        const OWNER_EMAIL = "marsellinus1703@gmail.com";
+
+        function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById("authEmail").value.trim();
+            const isOwner = email.toLowerCase() === OWNER_EMAIL.toLowerCase();
+
+            currentUser = {
+                email: email,
+                name: isOwner ? "Marselinus Patrixon" : email.split('@')[0],
+                isOwner: isOwner
+            };
+
+            document.getElementById("authModal").classList.add("hidden");
+            document.getElementById("userBadgeName").innerText = currentUser.name;
+
+            if (currentUser.isOwner) {
+                document.getElementById("verifiedBadge").classList.remove("hidden");
+                document.getElementById("ownerTag").classList.remove("hidden");
+                document.getElementById("ownerNavBtn").classList.remove("hidden");
+                switchTab("owner");
+            } else {
+                switchTab("global");
+            }
+        }
+
+        function switchTab(tab) {
+            document.getElementById("globalChatView").classList.add("hidden");
+            document.getElementById("storiesView").classList.add("hidden");
+            document.getElementById("ownerDashboardView").classList.add("hidden");
+
+            if (tab === "global") {
+                document.getElementById("globalChatView").classList.remove("hidden");
+                document.getElementById("viewTitle").innerHTML = '<i class="fa-solid fa-earth-americas text-indigo-400"></i> Global Chat';
+            } else if (tab === "stories") {
+                document.getElementById("storiesView").classList.remove("hidden");
+                document.getElementById("viewTitle").innerHTML = '<i class="fa-solid fa-circle-notch text-indigo-400"></i> Stories / Status';
+            } else if (tab === "owner" && currentUser?.isOwner) {
+                document.getElementById("ownerDashboardView").classList.remove("hidden");
+                document.getElementById("viewTitle").innerHTML = '<i class="fa-solid fa-crown text-amber-400"></i> Owner Control Panel';
+            }
+        }
+
+        function sendGlobalMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById("globalInput");
+            if (!input.value.trim()) return;
+
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "flex flex-col bg-slate-800/80 p-3 rounded-xl border border-slate-700/50 max-w-xl";
+            msgDiv.innerHTML = `
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-bold text-xs ${currentUser.isOwner ? 'text-amber-400' : 'text-indigo-400'}">${currentUser.name}</span>
+                    ${currentUser.isOwner ? '<i class="fa-solid fa-circle-check text-blue-400 text-xs"></i>' : ''}
+                    <span class="text-[10px] text-slate-500">Baru saja</span>
+                </div>
+                <div class="text-sm text-slate-200">${input.value}</div>
+            `;
+            document.getElementById("globalChatMessages").appendChild(msgDiv);
+            input.value = "";
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById("authModal").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
